@@ -34,7 +34,7 @@ npm start
 npm run dev
 ```
 
-The server will start on port 3000 (configurable via `PORT` environment variable).
+The server will start on port 3002 (configurable via `PORT` environment variable).
 
 ### Testing
 

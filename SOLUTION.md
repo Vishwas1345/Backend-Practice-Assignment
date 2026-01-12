@@ -96,7 +96,7 @@ npm install
 npm start
 ```
 
-Server starts on **http://localhost:3000**
+Server starts on **http://localhost:3002**
 
 ### 2. Run Integration Tests
 
@@ -124,22 +124,22 @@ All tests completed successfully!
 
 ```bash
 # 1. Create organization
-curl -X POST http://localhost:3000/orgs \
+curl -X POST http://localhost:3002/orgs \
   -H "Content-Type: application/json" \
   -d '{"name": "My Company"}'
 
 # 2. Create project (use org_id from step 1)
-curl -X POST http://localhost:3000/projects \
+curl -X POST http://localhost:3002/projects \
   -H "Content-Type: application/json" \
   -d '{"org_id": "uuid-from-step-1", "name": "My Project"}'
 
 # 3. Create API token (use project_id from step 2)
-curl -X POST http://localhost:3000/tokens \
+curl -X POST http://localhost:3002/tokens \
   -H "Content-Type: application/json" \
   -d '{"project_id": "uuid-from-step-2"}'
 
 # 4. Ingest test result (use token from step 3)
-curl -X POST http://localhost:3000/ingest \
+curl -X POST http://localhost:3002/ingest \
   -H "Authorization: Bearer your-token-here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -241,7 +241,7 @@ POST /ingest 200 96 - 71.232 ms
 ### 5. Simple Metrics
 
 ```bash
-curl http://localhost:3000/metrics
+curl http://localhost:3002/metrics
 ```
 
 ```json

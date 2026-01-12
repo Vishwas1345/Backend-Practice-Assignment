@@ -18,7 +18,7 @@ npm test
 ### 1. Create an Organization
 
 ```bash
-curl -X POST http://localhost:3000/orgs \
+curl -X POST http://localhost:3002/orgs \
   -H "Content-Type: application/json" \
   -d '{"name": "My Company"}'
 ```
@@ -35,7 +35,7 @@ curl -X POST http://localhost:3000/orgs \
 ### 2. Create a Project
 
 ```bash
-curl -X POST http://localhost:3000/projects \
+curl -X POST http://localhost:3002/projects \
   -H "Content-Type: application/json" \
   -d '{"org_id": "uuid-from-step-1", "name": "My Project"}'
 ```
@@ -53,7 +53,7 @@ curl -X POST http://localhost:3000/projects \
 ### 3. Create an API Token
 
 ```bash
-curl -X POST http://localhost:3000/tokens \
+curl -X POST http://localhost:3002/tokens \
   -H "Content-Type: application/json" \
   -d '{"project_id": "project-uuid"}'
 ```
@@ -73,7 +73,7 @@ curl -X POST http://localhost:3000/tokens \
 ### 4. Ingest Test Results
 
 ```bash
-curl -X POST http://localhost:3000/ingest \
+curl -X POST http://localhost:3002/ingest \
   -H "Authorization: Bearer your-token-here" \
   -H "Content-Type: application/json" \
   -d '{
@@ -105,7 +105,7 @@ curl -X POST http://localhost:3000/ingest \
 ### 5. Check Metrics
 
 ```bash
-curl http://localhost:3000/metrics
+curl http://localhost:3002/metrics
 ```
 
 **Response:**
@@ -123,7 +123,7 @@ curl http://localhost:3000/metrics
 ### 6. Health Check
 
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:3002/health
 ```
 
 **Response:**
@@ -150,7 +150,7 @@ STATUS="passed"  # or "failed"
 DURATION_MS=45000
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
-curl -X POST http://your-server:3000/ingest \
+curl -X POST http://your-server:3002/ingest \
   -H "Authorization: Bearer ${API_TOKEN}" \
   -H "Content-Type: application/json" \
   -d "{

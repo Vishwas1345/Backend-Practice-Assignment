@@ -239,7 +239,7 @@ npm install
 npm start
 ```
 
-Server runs on http://localhost:3000
+Server runs on http://localhost:3002
 
 ### Run Tests
 
@@ -252,22 +252,22 @@ npm test
 
 ```bash
 # Create organization
-curl -X POST http://localhost:3000/orgs \
+curl -X POST http://localhost:3002/orgs \
   -H "Content-Type: application/json" \
   -d '{"name": "Acme Corp"}'
 
 # Create project
-curl -X POST http://localhost:3000/projects \
+curl -X POST http://localhost:3002/projects \
   -H "Content-Type: application/json" \
   -d '{"org_id": "uuid-from-above", "name": "Test Project"}'
 
 # Create token
-curl -X POST http://localhost:3000/tokens \
+curl -X POST http://localhost:3002/tokens \
   -H "Content-Type: application/json" \
   -d '{"project_id": "uuid-from-above"}'
 
 # Ingest test result
-curl -X POST http://localhost:3000/ingest \
+curl -X POST http://localhost:3002/ingest \
   -H "Authorization: Bearer <token-from-above>" \
   -H "Content-Type: application/json" \
   -d '{
