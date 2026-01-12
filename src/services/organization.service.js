@@ -3,7 +3,7 @@
  * Business logic for organization operations
  */
 
-const { Organization } = require('../models');
+const { Organization } = require('../models/index.model');
 
 /**
  * Create a new organization

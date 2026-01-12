@@ -3,7 +3,7 @@
  * Business logic for test run ingestion
  */
 
-const { TestRun } = require('../models');
+const { TestRun } = require('../models/index.model');
 
 /**
  * Ingest a test run with comprehensive test execution data

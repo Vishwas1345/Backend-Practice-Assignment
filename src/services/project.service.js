@@ -3,7 +3,7 @@
  * Business logic for project operations
  */
 
-const { Project, Organization } = require('../models');
+const { Project, Organization } = require('../models/index.model');
 
 /**
  * Create a new project

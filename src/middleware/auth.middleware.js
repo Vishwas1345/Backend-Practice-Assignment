@@ -1,4 +1,4 @@
-const { ApiToken } = require('../models');
+const { ApiToken } = require('../models/index.model');
 
 /**
  * Middleware to authenticate requests using Bearer token

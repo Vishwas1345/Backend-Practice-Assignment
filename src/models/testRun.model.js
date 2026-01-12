@@ -1,4 +1,4 @@
-const { getDb } = require('../db');
+const { getDb } = require('../config/db.config');
 
 /**
  * TestRun Model

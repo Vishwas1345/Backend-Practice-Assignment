@@ -1,16 +1,16 @@
 const express = require('express');
-const { authenticateToken } = require('./middleware/auth.middleware');
-const organizationController = require('./controllers/organization.controller');
-const projectController = require('./controllers/project.controller');
-const tokenController = require('./controllers/token.controller');
-const testRunController = require('./controllers/testRun.controller');
+const { authenticateToken } = require('../middleware/auth.middleware');
+const organizationController = require('../controllers/organization.controller');
+const projectController = require('../controllers/project.controller');
+const tokenController = require('../controllers/token.controller');
+const testRunController = require('../controllers/testRun.controller');
 const {
   validateOrganizationInput,
   validateProjectInput,
   validateTokenInput,
   validateTestRunInput
-} = require('./middleware/validation.middleware');
-const metricsController = require('./controllers/metrics.controller');
+} = require('../middleware/validation.middleware');
+const metricsController = require('../controllers/metrics.controller');
 const router = express.Router();
 
 /**

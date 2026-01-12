@@ -3,7 +3,7 @@
  * Business logic for API token operations
  */
 
-const { ApiToken, Project } = require('../models');
+const { ApiToken, Project } = require('../models/index.model');
 
 /**
  * Create a new API token
