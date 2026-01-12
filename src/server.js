@@ -69,7 +69,7 @@ Endpoints:
   GET    /health         - Health check
 
 MongoDB URI: ${process.env.MONGODB_URI}
-Database: test_analytics
+Database: ${process.env.DB_NAME}
 
       `);
     });
