@@ -18,7 +18,6 @@ function validateOrganization(data) {
     } else if (data.name.length > 255) {
         errors.push('name must be less than 255 characters');
     }
-
     return errors;
 }
 
@@ -66,6 +65,10 @@ function validateTestRun(data) {
         errors.push('run_id is required and must be a string');
     } else if (data.run_id.trim().length === 0) {
         errors.push('run_id cannot be empty');
+    } else if (!data.run_id.startsWith('tr_')) {
+        errors.push('run_id must start with "tr_" prefix (e.g., tr_my_test_run_123)');
+    } else if (data.run_id.length < 4) {
+        errors.push('run_id must have at least one character after "tr_" prefix');
     }
 
     if (!data.status || !['passed', 'failed'].includes(data.status)) {

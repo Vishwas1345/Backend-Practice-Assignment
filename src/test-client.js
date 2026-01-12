@@ -71,9 +71,9 @@ async function runTests() {
 
     // 2. Create Project
     console.log('2️⃣  Creating project...');
-    const projectRes = await makeRequest('POST', '/projects', { 
-      org_id: orgId, 
-      name: 'Web App Tests' 
+    const projectRes = await makeRequest('POST', '/projects', {
+      org_id: orgId,
+      name: 'Web App Tests'
     });
     console.log(`   Status: ${projectRes.status}`);
     console.log(`   Response:`, projectRes.data);
@@ -99,7 +99,7 @@ async function runTests() {
 
     // 4. Ingest Test Run (First time)
     console.log('4️⃣  Ingesting test run (first attempt)...');
-    const runId = `run-${Date.now()}`;
+    const runId = `tr_test_${Date.now()}`;
     const ingestRes1 = await makeRequest('POST', '/ingest', {
       run_id: runId,
       status: 'passed',
@@ -129,9 +129,9 @@ async function runTests() {
     // 6. Test Authorization Failure
     console.log('6️⃣  Testing invalid token (should fail)...');
     const authFailRes = await makeRequest('POST', '/ingest', {
-      run_id: 'test-run-unauthorized',
+      run_id: 'tr_unauthorized_test',
       status: 'failed',
-      duration_ms: 5000,
+      duration_ms: 6000,
       timestamp: new Date().toISOString()
     }, 'invalid-token-12345');
     console.log(`   Status: ${authFailRes.status}`);
@@ -162,4 +162,3 @@ async function runTests() {
 
 // Run tests
 runTests();
-
