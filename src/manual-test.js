@@ -93,7 +93,7 @@ async function testHealthCheck() {
 async function testCreateOrganization() {
     console.log('\n🏢 Testing Create Organization...');
     const response = await makeRequest('POST', '/orgs', {
-        name: 'Vishwas Org12'
+        name: 'Sahil org'
     });
     console.log('Status:', response.status);
     console.log('Response:', JSON.stringify(response.data, null, 2));
@@ -111,7 +111,7 @@ async function testCreateProject(orgId) {
     console.log('\n📁 Testing Create Project...');
     const response = await makeRequest('POST', '/projects', {
         org_id: orgId,
-        name: 'My Test Project'
+        name: 'Sahil Project'
     });
     console.log('Status:', response.status);
     console.log('Response:', JSON.stringify(response.data, null, 2));
@@ -145,10 +145,66 @@ async function testCreateToken(projectId) {
 async function testIngestTestRun(token) {
     console.log('\n📊 Testing Ingest Test Run...');
     const response = await makeRequest('POST', '/ingest', {
-        run_id: `manual-test-${Date.now()}`,
-        status: 'passed',
-        duration_ms: 1500,
-        timestamp: new Date().toISOString()
+        run_id: `tr_manual_test_123432`,
+        environment: 'production',
+        timestamp: new Date().toISOString(),
+        summary: {
+            total_test_cases: 4,
+            passed: 1,
+            failed: 1,
+            flaky: 1,
+            skipped: 0,
+            duration_ms: 1200
+        },
+        test_suites: [
+            {
+                suite_name: 'Mock tests',
+                total_cases: 2,
+                passed: 1,
+                failed: 1,
+                duration_ms: 5000,
+                test_cases: [
+                    {
+                        name: 'GET /users should return users',
+                        status: 'passed',
+                        duration_ms: 1500,
+                        steps: 2,
+                        error_message: null
+                    },
+                 
+                    {
+                        name: 'DELETE /users should fail on invalid ID',
+                        status: 'failed',
+                        duration_ms: 1500,
+                        steps: 2,
+                        error_message: 'Expected 404 but got 500'
+                    }
+                ]
+            },
+            {
+                suite_name: 'UI Tests',
+                total_cases: 2,
+                passed: 1,
+                failed: 0,
+                duration_ms: 3500,
+                test_cases: [
+                    {
+                        name: 'Login page should render',
+                        status: 'passed',
+                        duration_ms: 1200,
+                        steps: 1,
+                        error_message: null
+                    },
+                    {
+                        name: 'Form submission should work',
+                        status: 'flaky',
+                        duration_ms: 2300,
+                        steps: 4,
+                        error_message: 'Intermittent timeout'
+                    }
+                ]
+            }
+        ]
     }, token);
     console.log('Status:', response.status);
     console.log('Response:', JSON.stringify(response.data, null, 2));
@@ -163,9 +219,17 @@ async function testIngestDuplicate(token, runId) {
     console.log('\n🔄 Testing Idempotency (duplicate run_id)...');
     const response = await makeRequest('POST', '/ingest', {
         run_id: runId,
-        status: 'passed',
-        duration_ms: 1500,
-        timestamp: new Date().toISOString()
+        environment: 'staging',
+        timestamp: new Date().toISOString(),
+        summary: {
+            total_test_cases: 5,
+            passed: 3,
+            failed: 1,
+            flaky: 1,
+            skipped: 0,
+            duration_ms: 8500
+        },
+        test_suites: []
     }, token);
     console.log('Status:', response.status);
     console.log('Response:', JSON.stringify(response.data, null, 2));
@@ -238,12 +302,51 @@ async function runCompleteWorkflow() {
 
         // 5. Ingest Test Run
         console.log('\n' + '='.repeat(70));
-        const runId = `run-${Date.now()}`;
+        const runId = `tr_workflow_${Date.now()}`;
         const ingestRes = await makeRequest('POST', '/ingest', {
             run_id: runId,
-            status: 'passed',
-            duration_ms: 1234,
-            timestamp: new Date().toISOString()
+            environment: 'production',
+            timestamp: new Date().toISOString(),
+            summary: {
+                total_test_cases: 3,
+                passed: 2,
+                failed: 1,
+                flaky: 0,
+                skipped: 0,
+                duration_ms: 5000
+            },
+            test_suites: [
+                {
+                    suite_name: 'Smoke Tests',
+                    total_cases: 3,
+                    passed: 2,
+                    failed: 1,
+                    duration_ms: 5000,
+                    test_cases: [
+                        {
+                            name: 'Health check',
+                            status: 'passed',
+                            duration_ms: 1000,
+                            steps: 1,
+                            error_message: null
+                        },
+                        {
+                            name: 'Database connection',
+                            status: 'passed',
+                            duration_ms: 2000,
+                            steps: 2,
+                            error_message: null
+                        },
+                        {
+                            name: 'External API',
+                            status: 'failed',
+                            duration_ms: 2000,
+                            steps: 1,
+                            error_message: 'Connection timeout'
+                        }
+                    ]
+                }
+            ]
         }, token);
         console.log('✅ Test Run Ingested:', ingestRes.data.run_id);
 
@@ -251,9 +354,17 @@ async function runCompleteWorkflow() {
         console.log('\n' + '='.repeat(70));
         const duplicateRes = await makeRequest('POST', '/ingest', {
             run_id: runId,
-            status: 'passed',
-            duration_ms: 1234,
-            timestamp: new Date().toISOString()
+            environment: 'production',
+            timestamp: new Date().toISOString(),
+            summary: {
+                total_test_cases: 3,
+                passed: 2,
+                failed: 1,
+                flaky: 0,
+                skipped: 0,
+                duration_ms: 5000
+            },
+            test_suites: []
         }, token);
         console.log('✅ Idempotency Test:', duplicateRes.data.duplicate ? 'PASSED' : 'FAILED');
 
@@ -279,11 +390,11 @@ async function main() {
     await runCompleteWorkflow();
 
     // OPTION 2: Run individual tests (uncomment as needed)
-    // await testHealthCheck();
-    await testCreateOrganization();
-    // await testCreateProject('YOUR_ORG_ID_HERE');
-    // await testCreateToken('YOUR_PROJECT_ID_HERE');
-    // await testIngestTestRun('YOUR_TOKEN_HERE');
+    await testHealthCheck();
+    // await testCreateOrganization();
+    // await testCreateProject('160ae8a8-2138-498e-8465-3e65178562bf');
+    // await testCreateToken('1f57e4e2-956b-40ce-9493-ccc13ee95084');
+    await testIngestTestRun('b24a6a36e512d663c975051ffb621f94ea259133ed204b547e19db6d6271f3a5');
     // await testInvalidToken();
     // await testValidationError();
 }
