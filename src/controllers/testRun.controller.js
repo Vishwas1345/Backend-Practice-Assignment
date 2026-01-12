@@ -14,15 +14,16 @@ const ingestTestRun = async (req, res) => {
     const startTime = Date.now();
 
     try {
-        const { run_id, status, duration_ms, timestamp } = req.body;
+        const { run_id, environment, timestamp, summary, test_suites } = req.body;
         const { projectId } = req.auth;
 
         const result = await testRunService.ingestTestRun({
             projectId,
             runId: run_id,
-            status,
-            durationMs: duration_ms,
-            timestamp
+            environment,
+            timestamp,
+            summary,
+            testSuites: test_suites
         });
 
         const duration = Date.now() - startTime;
@@ -38,12 +39,13 @@ const ingestTestRun = async (req, res) => {
             });
         }
 
-        console.log(`[TEST_RUN_INGESTED] project_id=${projectId} run_id=${run_id} status=${status} duration=${duration}ms`);
+        console.log(`[TEST_RUN_INGESTED] project_id=${projectId} run_id=${run_id} environment=${environment} total_cases=${summary.total_test_cases} duration=${duration}ms`);
 
         sendSuccess(res, 201, {
             message: 'Test run ingested successfully',
             run_id,
-            status
+            environment,
+            summary: result.summary
         });
     } catch (error) {
         console.error('[INGEST_ERROR]', error);

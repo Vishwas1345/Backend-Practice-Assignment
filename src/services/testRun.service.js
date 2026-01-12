@@ -6,32 +6,35 @@
 const { TestRun } = require('../models');
 
 /**
- * Ingest a test run with idempotency support
+ * Ingest a test run with comprehensive test execution data
  * @param {Object} data - Test run data
  * @param {string} data.projectId - Project ID
- * @param {string} data.runId - Run ID
- * @param {string} data.status - Test status
- * @param {number} data.durationMs - Duration in milliseconds
+ * @param {string} data.runId - Run ID (tr_ prefix)
+ * @param {string} data.environment - Environment name
  * @param {string} data.timestamp - ISO timestamp
+ * @param {Object} data.summary - Test execution summary
+ * @param {Array} data.testSuites - Test suites with test cases
  * @returns {Promise<Object>} Result object with success flag and data
  */
 const ingestTestRun = async (data) => {
-    const { projectId, runId, status, durationMs, timestamp } = data;
+    const { projectId, runId, environment, timestamp, summary, testSuites } = data;
 
     try {
         await TestRun.create({
             projectId,
             runId,
-            status,
-            durationMs,
-            timestamp
+            environment,
+            timestamp,
+            summary,
+            testSuites
         });
 
         return {
             success: true,
             duplicate: false,
             runId,
-            status
+            environment,
+            summary
         };
     } catch (error) {
         // Handle idempotency: duplicate run_id
@@ -40,7 +43,7 @@ const ingestTestRun = async (data) => {
                 success: true,
                 duplicate: true,
                 runId,
-                status
+                environment
             };
         }
         throw error;

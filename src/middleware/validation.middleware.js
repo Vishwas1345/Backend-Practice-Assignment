@@ -61,6 +61,7 @@ function validateToken(data) {
 function validateTestRun(data) {
     const errors = [];
 
+    // Validate run_id
     if (!data.run_id || typeof data.run_id !== 'string') {
         errors.push('run_id is required and must be a string');
     } else if (data.run_id.trim().length === 0) {
@@ -71,23 +72,88 @@ function validateTestRun(data) {
         errors.push('run_id must have at least one character after "tr_" prefix');
     }
 
-    if (!data.status || !['passed', 'failed'].includes(data.status)) {
-        errors.push('status is required and must be either "passed" or "failed"');
+    // Validate environment
+    if (!data.environment || typeof data.environment !== 'string') {
+        errors.push('environment is required and must be a string (e.g., "staging", "production")');
     }
 
-    if (data.duration_ms === undefined || data.duration_ms === null) {
-        errors.push('duration_ms is required');
-    } else if (typeof data.duration_ms !== 'number' || data.duration_ms < 0) {
-        errors.push('duration_ms must be a non-negative number');
-    }
-
+    // Validate timestamp
     if (!data.timestamp || typeof data.timestamp !== 'string') {
         errors.push('timestamp is required and must be a string');
     } else {
-        // Validate ISO 8601 format
         const date = new Date(data.timestamp);
         if (isNaN(date.getTime())) {
             errors.push('timestamp must be a valid ISO 8601 date string');
+        }
+    }
+
+    // Validate summary
+    if (!data.summary || typeof data.summary !== 'object') {
+        errors.push('summary is required and must be an object');
+    } else {
+        const summary = data.summary;
+
+        if (typeof summary.total_test_cases !== 'number' || summary.total_test_cases < 0) {
+            errors.push('summary.total_test_cases must be a non-negative number');
+        }
+        if (typeof summary.passed !== 'number' || summary.passed < 0) {
+            errors.push('summary.passed must be a non-negative number');
+        }
+        if (typeof summary.failed !== 'number' || summary.failed < 0) {
+            errors.push('summary.failed must be a non-negative number');
+        }
+        if (typeof summary.flaky !== 'number' || summary.flaky < 0) {
+            errors.push('summary.flaky must be a non-negative number');
+        }
+        if (typeof summary.skipped !== 'number' || summary.skipped < 0) {
+            errors.push('summary.skipped must be a non-negative number');
+        }
+        if (typeof summary.duration_ms !== 'number' || summary.duration_ms < 0) {
+            errors.push('summary.duration_ms must be a non-negative number');
+        }
+    }
+
+    // Validate test_suites (optional but must be array if provided)
+    if (data.test_suites !== undefined) {
+        if (!Array.isArray(data.test_suites)) {
+            errors.push('test_suites must be an array');
+        } else {
+            data.test_suites.forEach((suite, suiteIndex) => {
+                if (!suite.suite_name || typeof suite.suite_name !== 'string') {
+                    errors.push(`test_suites[${suiteIndex}].suite_name is required and must be a string`);
+                }
+                if (typeof suite.total_cases !== 'number' || suite.total_cases < 0) {
+                    errors.push(`test_suites[${suiteIndex}].total_cases must be a non-negative number`);
+                }
+                if (typeof suite.passed !== 'number' || suite.passed < 0) {
+                    errors.push(`test_suites[${suiteIndex}].passed must be a non-negative number`);
+                }
+                if (typeof suite.failed !== 'number' || suite.failed < 0) {
+                    errors.push(`test_suites[${suiteIndex}].failed must be a non-negative number`);
+                }
+                if (typeof suite.duration_ms !== 'number' || suite.duration_ms < 0) {
+                    errors.push(`test_suites[${suiteIndex}].duration_ms must be a non-negative number`);
+                }
+
+                // Validate test_cases within suite
+                if (suite.test_cases !== undefined) {
+                    if (!Array.isArray(suite.test_cases)) {
+                        errors.push(`test_suites[${suiteIndex}].test_cases must be an array`);
+                    } else {
+                        suite.test_cases.forEach((testCase, caseIndex) => {
+                            if (!testCase.name || typeof testCase.name !== 'string') {
+                                errors.push(`test_suites[${suiteIndex}].test_cases[${caseIndex}].name is required`);
+                            }
+                            if (!['passed', 'failed', 'flaky', 'skipped'].includes(testCase.status)) {
+                                errors.push(`test_suites[${suiteIndex}].test_cases[${caseIndex}].status must be one of: passed, failed, flaky, skipped`);
+                            }
+                            if (typeof testCase.duration_ms !== 'number' || testCase.duration_ms < 0) {
+                                errors.push(`test_suites[${suiteIndex}].test_cases[${caseIndex}].duration_ms must be a non-negative number`);
+                            }
+                        });
+                    }
+                }
+            });
         }
     }
 
