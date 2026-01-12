@@ -1,14 +1,12 @@
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
-const crypto = require('crypto');
-const { dbRun, dbGet, dbAll } = require('./db-helpers');
-const { hashToken, authenticateToken } = require('./auth');
+const { authenticateToken } = require('./auth');
 const { 
   validateOrganization, 
   validateProject, 
   validateToken, 
   validateTestRun 
 } = require('./validation');
+const { Organization, Project, ApiToken, TestRun } = require('./models');
 
 const router = express.Router();
 
@@ -45,29 +43,28 @@ router.post('/orgs', async (req, res) => {
       });
     }
 
-    const orgId = uuidv4();
     const { name } = req.body;
-    
+
     try {
-      await dbRun('INSERT INTO organizations (id, name) VALUES (?, ?)', [orgId, name]);
+      const organization = await Organization.create(name);
       metrics.orgs_created++;
       
       const duration = Date.now() - startTime;
-      console.log(`[ORG_CREATED] org_id=${orgId} name="${name}" duration=${duration}ms`);
+      console.log(`[ORG_CREATED] org_id=${organization._id} name="${name}" duration=${duration}ms`);
       
       res.status(201).json({ 
-        id: orgId, 
-        name,
+        id: organization._id, 
+        name: organization.name,
         message: 'Organization created successfully'
       });
-    } catch (dbError) {
-      if (dbError.message.includes('UNIQUE constraint failed')) {
+    } catch (error) {
+      if (error.message.includes('already exists')) {
         return res.status(409).json({ 
           error: 'Conflict', 
-          message: 'Organization with this name already exists' 
+          message: error.message
         });
       }
-      throw dbError;
+      throw error;
     }
   } catch (error) {
     console.error('[ORG_CREATE_ERROR]', error);
@@ -97,7 +94,7 @@ router.post('/projects', async (req, res) => {
     const { org_id, name } = req.body;
     
     // Verify organization exists
-    const org = await dbGet('SELECT id FROM organizations WHERE id = ?', [org_id]);
+    const org = await Organization.findById(org_id);
     if (!org) {
       return res.status(404).json({ 
         error: 'Not Found', 
@@ -105,29 +102,27 @@ router.post('/projects', async (req, res) => {
       });
     }
 
-    const projectId = uuidv4();
-    
     try {
-      await dbRun('INSERT INTO projects (id, org_id, name) VALUES (?, ?, ?)', [projectId, org_id, name]);
+      const project = await Project.create(org_id, name);
       metrics.projects_created++;
       
       const duration = Date.now() - startTime;
-      console.log(`[PROJECT_CREATED] project_id=${projectId} org_id=${org_id} name="${name}" duration=${duration}ms`);
+      console.log(`[PROJECT_CREATED] project_id=${project._id} org_id=${org_id} name="${name}" duration=${duration}ms`);
       
       res.status(201).json({ 
-        id: projectId, 
-        org_id,
-        name,
+        id: project._id, 
+        org_id: project.org_id,
+        name: project.name,
         message: 'Project created successfully'
       });
-    } catch (dbError) {
-      if (dbError.message.includes('UNIQUE constraint failed')) {
+    } catch (error) {
+      if (error.message.includes('already exists')) {
         return res.status(409).json({ 
           error: 'Conflict', 
-          message: 'Project with this name already exists in the organization' 
+          message: error.message
         });
       }
-      throw dbError;
+      throw error;
     }
   } catch (error) {
     console.error('[PROJECT_CREATE_ERROR]', error);
@@ -158,7 +153,7 @@ router.post('/tokens', async (req, res) => {
     const { project_id } = req.body;
     
     // Verify project exists
-    const project = await dbGet('SELECT id FROM projects WHERE id = ?', [project_id]);
+    const project = await Project.findById(project_id);
     if (!project) {
       return res.status(404).json({ 
         error: 'Not Found', 
@@ -166,22 +161,17 @@ router.post('/tokens', async (req, res) => {
       });
     }
 
-    const tokenId = uuidv4();
-    // Generate a secure random token (32 bytes = 64 hex characters)
-    const rawToken = crypto.randomBytes(32).toString('hex');
-    const tokenHash = await hashToken(rawToken);
-
-    await dbRun('INSERT INTO api_tokens (id, project_id, token_hash) VALUES (?, ?, ?)', [tokenId, project_id, tokenHash]);
+    const result = await ApiToken.create(project_id);
     
     metrics.tokens_created++;
     
     const duration = Date.now() - startTime;
-    console.log(`[TOKEN_CREATED] token_id=${tokenId} project_id=${project_id} duration=${duration}ms`);
+    console.log(`[TOKEN_CREATED] token_id=${result.id} project_id=${project_id} duration=${duration}ms`);
     
     res.status(201).json({ 
-      id: tokenId,
-      project_id,
-      token: rawToken,
+      id: result.id,
+      project_id: result.project_id,
+      token: result.token,
       message: 'API token created successfully. Save this token - it will not be shown again!'
     });
   } catch (error) {
@@ -214,10 +204,14 @@ router.post('/ingest', authenticateToken, async (req, res) => {
 
     // Idempotency: Try to insert, handle duplicate gracefully
     try {
-      await dbRun(
-        'INSERT INTO test_runs (project_id, run_id, status, duration_ms, timestamp) VALUES (?, ?, ?, ?, ?)',
-        [projectId, run_id, status, duration_ms, timestamp]
-      );
+      await TestRun.create({
+        projectId,
+        runId: run_id,
+        status,
+        durationMs: duration_ms,
+        timestamp
+      });
+      
       metrics.test_runs_ingested++;
       
       const duration = Date.now() - startTime;
@@ -228,9 +222,9 @@ router.post('/ingest', authenticateToken, async (req, res) => {
         run_id,
         status
       });
-    } catch (dbError) {
+    } catch (error) {
       // Handle idempotency: duplicate run_id
-      if (dbError.message.includes('UNIQUE constraint failed')) {
+      if (error.message.includes('duplicate')) {
         metrics.duplicate_runs_rejected++;
         
         const duration = Date.now() - startTime;
@@ -243,7 +237,7 @@ router.post('/ingest', authenticateToken, async (req, res) => {
           duplicate: true
         });
       }
-      throw dbError;
+      throw error;
     }
   } catch (error) {
     console.error('[INGEST_ERROR]', error);
@@ -265,4 +259,3 @@ router.get('/health', (req, res) => {
 });
 
 module.exports = router;
-

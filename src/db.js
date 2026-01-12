@@ -1,68 +1,75 @@
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
-const fs = require('fs');
+const { MongoClient } = require('mongodb');
 
-// Ensure data directory exists
-const dataDir = path.join(__dirname, '..', 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
+// MongoDB connection URL - defaults to local MongoDB instance
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://vishwas_db_user:Vishwas12qw%21%40QW@vishwas1.vutark0.mongodb.net/testdino?appName=Vishwas1";
+const DB_NAME = 'test_analytics';
 
-const dbPath = path.join(dataDir, 'test_analytics.db');
-const db = new sqlite3.Database(dbPath);
+let db = null;
+let client = null;
 
-// Enable WAL mode for better concurrency
-db.run('PRAGMA journal_mode = WAL');
-db.run('PRAGMA foreign_keys = ON');
-
-// Initialize schema
-const schema = `
-  CREATE TABLE IF NOT EXISTS organizations (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-  );
-
-  CREATE TABLE IF NOT EXISTS projects (
-    id TEXT PRIMARY KEY,
-    org_id TEXT NOT NULL,
-    name TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (org_id) REFERENCES organizations(id) ON DELETE CASCADE,
-    UNIQUE(org_id, name)
-  );
-
-  CREATE TABLE IF NOT EXISTS api_tokens (
-    id TEXT PRIMARY KEY,
-    project_id TEXT NOT NULL,
-    token_hash TEXT NOT NULL UNIQUE,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
-  );
-
-  CREATE TABLE IF NOT EXISTS test_runs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    project_id TEXT NOT NULL,
-    run_id TEXT NOT NULL,
-    status TEXT NOT NULL CHECK(status IN ('passed', 'failed')),
-    duration_ms INTEGER NOT NULL,
-    timestamp TEXT NOT NULL,
-    created_at TEXT NOT NULL DEFAULT (datetime('now')),
-    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
-    UNIQUE(project_id, run_id)
-  );
-
-  CREATE INDEX IF NOT EXISTS idx_test_runs_project ON test_runs(project_id);
-  CREATE INDEX IF NOT EXISTS idx_test_runs_timestamp ON test_runs(timestamp);
-  CREATE INDEX IF NOT EXISTS idx_api_tokens_hash ON api_tokens(token_hash);
-`;
-
-db.exec(schema, (err) => {
-  if (err) {
-    console.error('Failed to initialize database:', err);
+// Connect to MongoDB
+async function connectDatabase() {
+  try {
+    client = new MongoClient(MONGODB_URI);
+    await client.connect();
+    db = client.db(DB_NAME);
+    
+    console.log('✓ MongoDB connected successfully');
+    
+    // Create indexes for better query performance
+    await createIndexes();
+    
+    return db;
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error);
     process.exit(1);
   }
-});
+}
 
-module.exports = db;
+// Create indexes on collections
+async function createIndexes() {
+  try {
+    // Organizations: unique name
+    await db.collection('organizations').createIndex({ name: 1 }, { unique: true });
+    
+    // Projects: unique (org_id, name) combination
+    await db.collection('projects').createIndex({ org_id: 1, name: 1 }, { unique: true });
+    
+    // API tokens: unique token_hash, index on project_id
+    await db.collection('api_tokens').createIndex({ token_hash: 1 }, { unique: true });
+    await db.collection('api_tokens').createIndex({ project_id: 1 });
+    
+    // Test runs: unique (project_id, run_id) for idempotency, index on timestamp
+    await db.collection('test_runs').createIndex({ project_id: 1, run_id: 1 }, { unique: true });
+    await db.collection('test_runs').createIndex({ timestamp: 1 });
+    await db.collection('test_runs').createIndex({ project_id: 1 });
+    
+  } catch (error) {
+    // Indexes may already exist, ignore duplicate key errors
+    if (error.code !== 11000) {
+      console.error('Error creating indexes:', error);
+    }
+  }
+}
 
+// Get database instance
+function getDb() {
+  if (!db) {
+    throw new Error('Database not initialized. Call connectDatabase() first.');
+  }
+  return db;
+}
+
+// Graceful shutdown
+async function closeDatabase() {
+  if (client) {
+    await client.close();
+    console.log('✓ MongoDB connection closed');
+  }
+}
+
+module.exports = {
+  connectDatabase,
+  getDb,
+  closeDatabase
+};

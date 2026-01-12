@@ -1,9 +1,10 @@
 const express = require('express');
 const morgan = require('morgan');
 const routes = require('./routes');
+const { connectDatabase, closeDatabase } = require('./db');
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PORT;
 
 // Middleware
 app.use(express.json());
@@ -42,15 +43,21 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`
+// Start server after connecting to database
+async function startServer() {
+  try {
+    // Connect to MongoDB first
+    await connectDatabase();
+    
+    // Then start the Express server
+    app.listen(PORT, () => {
+      console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║  Test Analytics Ingestion Service                           ║
 ╚══════════════════════════════════════════════════════════════╝
 
 ✓ Server running on port ${PORT}
-✓ Database initialized
+✓ MongoDB connected
 ✓ Ready to accept requests
 
 Endpoints:
@@ -61,17 +68,29 @@ Endpoints:
   GET    /health         - Health check
   GET    /metrics        - Service metrics
 
-  `);
-});
+MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017'}
+Database: test_analytics
+
+      `);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
+process.on('SIGTERM', async () => {
   console.log('SIGTERM received, shutting down gracefully...');
+  await closeDatabase();
   process.exit(0);
 });
 
-process.on('SIGINT', () => {
+process.on('SIGINT', async () => {
   console.log('SIGINT received, shutting down gracefully...');
+  await closeDatabase();
   process.exit(0);
 });
 

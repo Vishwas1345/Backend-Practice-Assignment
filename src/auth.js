@@ -1,21 +1,4 @@
-const bcrypt = require('bcrypt');
-const { dbAll } = require('./db-helpers');
-
-const SALT_ROUNDS = 10;
-
-/**
- * Hash an API token for secure storage
- */
-async function hashToken(token) {
-  return bcrypt.hash(token, SALT_ROUNDS);
-}
-
-/**
- * Verify a token against a stored hash
- */
-async function verifyToken(token, hash) {
-  return bcrypt.compare(token, hash);
-}
+const { ApiToken } = require('./models');
 
 /**
  * Middleware to authenticate requests using Bearer token
@@ -41,28 +24,23 @@ async function authenticateToken(req, res, next) {
   }
 
   try {
-    // Get all token hashes from database
-    const tokens = await dbAll('SELECT id, project_id, token_hash FROM api_tokens');
+    // Use ApiToken model to authenticate
+    const auth = await ApiToken.authenticate(token);
     
-    // Try to match token against stored hashes
-    // Note: This is a potential performance bottleneck - see README for scaling discussion
-    for (const storedToken of tokens) {
-      const isValid = await verifyToken(token, storedToken.token_hash);
-      if (isValid) {
-        // Attach project context to request
-        req.auth = {
-          tokenId: storedToken.id,
-          projectId: storedToken.project_id
-        };
-        return next();
-      }
+    if (!auth) {
+      return res.status(401).json({ 
+        error: 'Unauthorized',
+        message: 'Invalid token' 
+      });
     }
     
-    // No matching token found
-    return res.status(401).json({ 
-      error: 'Unauthorized',
-      message: 'Invalid token' 
-    });
+    // Attach project context to request
+    req.auth = {
+      tokenId: auth.tokenId,
+      projectId: auth.projectId
+    };
+    
+    return next();
     
   } catch (error) {
     console.error('Authentication error:', error);
@@ -74,8 +52,5 @@ async function authenticateToken(req, res, next) {
 }
 
 module.exports = {
-  hashToken,
-  verifyToken,
   authenticateToken
 };
-
