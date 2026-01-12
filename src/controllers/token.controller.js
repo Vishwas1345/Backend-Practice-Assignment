@@ -5,6 +5,7 @@
 
 const tokenService = require('../services/token.service');
 const { sendSuccess, sendError } = require('../utils/response.util');
+const metricsController = require('./metrics.controller');
 
 /**
  * Create a new API token
@@ -17,6 +18,7 @@ const createToken = async (req, res) => {
         const { project_id } = req.body;
 
         const result = await tokenService.createToken(project_id);
+        metricsController.increment('tokens_created');
 
         const duration = Date.now() - startTime;
         console.log(`[TOKEN_CREATED] token_id=${result.id} project_id=${project_id} duration=${duration}ms`);

@@ -10,6 +10,7 @@ const {
   validateTokenInput,
   validateTestRunInput
 } = require('./middleware/validation.middleware');
+const metricsController = require('./controllers/metrics.controller');
 const router = express.Router();
 
 /**
@@ -42,5 +43,11 @@ router.get('/health', (req, res) => {
     timestamp: new Date().toISOString()
   });
 });
+
+/**
+ * GET /metrics - API usage metrics
+ */
+
+router.get('/metrics', metricsController.getMetrics);
 
 module.exports = router;

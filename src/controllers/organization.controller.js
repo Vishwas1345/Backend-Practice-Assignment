@@ -5,6 +5,7 @@
 
 const organizationService = require('../services/organization.service');
 const { sendSuccess, sendError } = require('../utils/response.util');
+const metricsController = require('./metrics.controller');
 
 /**
  * Create a new organization
@@ -17,6 +18,7 @@ const createOrganization = async (req, res) => {
         const { name } = req.body;
 
         const organization = await organizationService.createOrganization(name);
+        metricsController.increment('orgs_created');
 
         const duration = Date.now() - startTime;
         console.log(`[ORG_CREATED] org_id=${organization._id} name="${name}" duration=${duration}ms`);

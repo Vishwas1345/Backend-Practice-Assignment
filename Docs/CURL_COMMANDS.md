@@ -21,7 +21,38 @@ curl -X GET http://localhost:3002/health
 
 ---
 
-## 2. Create Organization
+## 2. Metrics
+
+**Get API usage metrics**
+```bash
+curl -X GET http://localhost:3002/metrics
+```
+
+**PowerShell:**
+```powershell
+curl http://localhost:3002/metrics
+```
+
+**Expected Response (200):**
+```json
+{
+  "uptime_seconds": 1234,
+  "counters": {
+    "requests_total": 0,
+    "orgs_created": 0,
+    "projects_created": 0,
+    "tokens_created": 0,
+    "test_runs_ingested": 0,
+    "duplicate_runs_rejected": 0,
+    "errors": 0
+  },
+  "timestamp": "2026-01-12T11:46:49.000Z"
+}
+```
+
+---
+
+## 3. Create Organization
 
 **Create a new organization**
 ```bash

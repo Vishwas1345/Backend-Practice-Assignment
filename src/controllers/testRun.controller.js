@@ -5,6 +5,7 @@
 
 const testRunService = require('../services/testRun.service');
 const { sendSuccess, sendError } = require('../utils/response.util');
+const metricsController = require('./metrics.controller');
 
 /**
  * Ingest a test run
@@ -29,6 +30,7 @@ const ingestTestRun = async (req, res) => {
         const duration = Date.now() - startTime;
 
         if (result.duplicate) {
+            metricsController.increment('duplicate_runs_rejected');
             console.log(`[DUPLICATE_RUN_REJECTED] project_id=${projectId} run_id=${run_id} duration=${duration}ms`);
 
             // Return 200 (not 409) to make retry safe
@@ -39,6 +41,7 @@ const ingestTestRun = async (req, res) => {
             });
         }
 
+        metricsController.increment('test_runs_ingested');
         console.log(`[TEST_RUN_INGESTED] project_id=${projectId} run_id=${run_id} environment=${environment} total_cases=${summary.total_test_cases} duration=${duration}ms`);
 
         sendSuccess(res, 201, {

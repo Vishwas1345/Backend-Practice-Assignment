@@ -5,6 +5,7 @@
 
 const projectService = require('../services/project.service');
 const { sendSuccess, sendError } = require('../utils/response.util');
+const metricsController = require('./metrics.controller');
 
 /**
  * Create a new project
@@ -17,6 +18,7 @@ const createProject = async (req, res) => {
         const { org_id, name } = req.body;
 
         const project = await projectService.createProject(org_id, name);
+        metricsController.increment('projects_created');
 
         const duration = Date.now() - startTime;
         console.log(`[PROJECT_CREATED] project_id=${project._id} org_id=${org_id} name="${name}" duration=${duration}ms`);
