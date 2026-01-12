@@ -45,7 +45,8 @@ const ingestTestRun = async (req, res) => {
             message: 'Test run ingested successfully',
             run_id,
             environment,
-            summary: result.summary
+            summary: result.summary,
+            test_suites: test_suites || []
         });
     } catch (error) {
         console.error('[INGEST_ERROR]', error);
