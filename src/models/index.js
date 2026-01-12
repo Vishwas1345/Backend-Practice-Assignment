@@ -1,12 +1,12 @@
 /**
  * Models Index
- * Exports all models for easy importing
+ * Central export point for all models
  */
 
-const Organization = require('./Organization');
-const Project = require('./Project');
-const ApiToken = require('./ApiToken');
-const TestRun = require('./TestRun');
+const Organization = require('./organization.model');
+const Project = require('./project.model');
+const ApiToken = require('./apiToken.model');
+const TestRun = require('./testRun.model');
 
 module.exports = {
   Organization,
@@ -14,4 +14,3 @@ module.exports = {
   ApiToken,
   TestRun
 };
-
