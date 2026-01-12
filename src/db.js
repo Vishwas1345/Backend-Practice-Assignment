@@ -1,8 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-// MongoDB connection URL - defaults to local MongoDB instance
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://vishwas_db_user:Vishwas12qw%21%40QW@vishwas1.vutark0.mongodb.net/testdino?appName=Vishwas1";
-const DB_NAME = 'test_analytics';
+const MONGODB_URI = process.env.MONGODB_URI;
+const DB_NAME = process.env.DB_NAME;
 
 let db = null;
 let client = null;
@@ -13,12 +12,12 @@ async function connectDatabase() {
     client = new MongoClient(MONGODB_URI);
     await client.connect();
     db = client.db(DB_NAME);
-    
+
     console.log('✓ MongoDB connected successfully');
-    
+
     // Create indexes for better query performance
     await createIndexes();
-    
+
     return db;
   } catch (error) {
     console.error('Failed to connect to MongoDB:', error);
@@ -31,19 +30,19 @@ async function createIndexes() {
   try {
     // Organizations: unique name
     await db.collection('organizations').createIndex({ name: 1 }, { unique: true });
-    
+
     // Projects: unique (org_id, name) combination
     await db.collection('projects').createIndex({ org_id: 1, name: 1 }, { unique: true });
-    
+
     // API tokens: unique token_hash, index on project_id
     await db.collection('api_tokens').createIndex({ token_hash: 1 }, { unique: true });
     await db.collection('api_tokens').createIndex({ project_id: 1 });
-    
+
     // Test runs: unique (project_id, run_id) for idempotency, index on timestamp
     await db.collection('test_runs').createIndex({ project_id: 1, run_id: 1 }, { unique: true });
     await db.collection('test_runs').createIndex({ timestamp: 1 });
     await db.collection('test_runs').createIndex({ project_id: 1 });
-    
+
   } catch (error) {
     // Indexes may already exist, ignore duplicate key errors
     if (error.code !== 11000) {

@@ -1,10 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
 const routes = require('./routes');
 const { connectDatabase, closeDatabase } = require('./db');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
@@ -15,9 +16,9 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms'))
 // Error handling for invalid JSON
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
-    return res.status(400).json({ 
-      error: 'Bad Request', 
-      message: 'Invalid JSON payload' 
+    return res.status(400).json({
+      error: 'Bad Request',
+      message: 'Invalid JSON payload'
     });
   }
   next(err);
@@ -28,18 +29,18 @@ app.use('/', routes);
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ 
-    error: 'Not Found', 
-    message: `Route ${req.method} ${req.path} not found` 
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.path} not found`
   });
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
   console.error('[UNHANDLED_ERROR]', err);
-  res.status(500).json({ 
-    error: 'Internal Server Error', 
-    message: 'An unexpected error occurred' 
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: 'An unexpected error occurred'
   });
 });
 
@@ -48,7 +49,7 @@ async function startServer() {
   try {
     // Connect to MongoDB first
     await connectDatabase();
-    
+
     // Then start the Express server
     app.listen(PORT, () => {
       console.log(`
@@ -66,9 +67,8 @@ Endpoints:
   POST   /tokens         - Create API token
   POST   /ingest         - Ingest test results (requires auth)
   GET    /health         - Health check
-  GET    /metrics        - Service metrics
 
-MongoDB URI: ${process.env.MONGODB_URI || 'mongodb://localhost:27017'}
+MongoDB URI: ${process.env.MONGODB_URI}
 Database: test_analytics
 
       `);

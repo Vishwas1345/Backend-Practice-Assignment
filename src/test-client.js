@@ -150,13 +150,6 @@ async function runTests() {
     console.log(`   Response:`, validationFailRes.data);
     console.log('');
 
-    // 8. Check Metrics
-    console.log('8️⃣  Checking service metrics...');
-    const metricsRes = await makeRequest('GET', '/metrics');
-    console.log(`   Status: ${metricsRes.status}`);
-    console.log(`   Metrics:`, metricsRes.data);
-    console.log('');
-
     console.log('='.repeat(70));
     console.log('✅ All tests completed successfully!');
     console.log('='.repeat(70));
