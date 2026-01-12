@@ -6,6 +6,9 @@
 # Install dependencies
 npm install
 
+# The app uses MongoDB Atlas by default (configured in src/db.js)
+# No additional setup needed!
+
 # Start the server
 npm start
 
@@ -194,14 +197,30 @@ curl -X POST http://your-server:3002/ingest \
 
 ## Database Location
 
-SQLite database is stored at: `data/test_analytics.db`
+MongoDB Atlas cloud database: `test_analytics`
 
 To inspect the database:
 
+**Option 1: MongoDB Compass (GUI)**
+- Download from: https://www.mongodb.com/products/compass
+- Connect using your MongoDB Atlas connection string
+- Browse collections: organizations, projects, api_tokens, test_runs
+
+**Option 2: MongoDB Shell (mongosh)**
 ```bash
-sqlite3 data/test_analytics.db
-sqlite> .tables
-sqlite> SELECT * FROM test_runs LIMIT 5;
+# Connect to your Atlas cluster
+mongosh "your-connection-string"
+
+# Use the database
+use test_analytics
+
+# View collections
+show collections
+
+# Query data
+db.organizations.find().pretty()
+db.projects.find().pretty()
+db.test_runs.find().limit(5).pretty()
 ```
 
 ---

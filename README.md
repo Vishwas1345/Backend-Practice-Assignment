@@ -10,7 +10,7 @@ A minimal, production-ready backend service for ingesting automated test results
 - ✅ Request validation and comprehensive error handling
 - ✅ Structured logging with request timing
 - ✅ Simple metrics endpoint
-- ✅ SQLite database with WAL mode for better concurrency
+- ✅ MongoDB Atlas cloud database (scalable, distributed)
 
 ---
 
@@ -20,12 +20,17 @@ A minimal, production-ready backend service for ingesting automated test results
 
 - Node.js 16+ 
 - npm or yarn
+- MongoDB Atlas account (free tier available) or local MongoDB
 
 ### Installation
 
 ```bash
 # Install dependencies
 npm install
+
+# Set MongoDB connection (if using different URI)
+# Default is configured for MongoDB Atlas cloud
+# For localhost: set MONGODB_URI=mongodb://localhost:27017
 
 # Start the server
 npm start
@@ -35,6 +40,8 @@ npm run dev
 ```
 
 The server will start on port 3002 (configurable via `PORT` environment variable).
+
+**Note:** The application is configured to use MongoDB Atlas by default. The connection string is in `src/db.js`.
 
 ### Testing
 
@@ -202,43 +209,50 @@ GET /metrics
 
 ## Design Decisions
 
-### 1. Database Choice: SQLite
+### 1. Database Choice: MongoDB Atlas
 
-**Why SQLite?**
-- Zero configuration
-- Excellent for embedded/single-server deployments
-- ACID compliant with WAL mode
-- Sufficient for moderate traffic
-- Easy to backup (single file)
+**Why MongoDB Atlas?**
+- Cloud-native, managed database service
+- Zero server maintenance required
+- Automatic backups and monitoring
+- Easy horizontal scaling with sharding
+- Global distribution support
+- Free tier available for development
+- Native JSON document storage
 
-**Trade-offs:**
-- Not ideal for multi-server deployments (would need PostgreSQL/MySQL)
-- Write throughput limited compared to client-server databases
+**Benefits:**
+- Perfect for multi-server deployments
+- Built-in replication and high availability
+- Excellent for flexible schema evolution
+- Cloud-ready from day one
 
-### 2. Storage Schema
+### 2. Storage Schema (MongoDB Collections)
 
-```sql
-organizations (id, name, created_at)
+```javascript
+organizations { _id, name, created_at }
   ↓
-projects (id, org_id, name, created_at)
+projects { _id, org_id, name, created_at }
   ↓
-api_tokens (id, project_id, token_hash, created_at)
+api_tokens { _id, project_id, token_hash, created_at }
   ↓
-test_runs (id, project_id, run_id, status, duration_ms, timestamp, created_at)
+test_runs { project_id, run_id, status, duration_ms, timestamp, created_at }
 ```
 
-**Key constraints:**
-- `UNIQUE(project_id, run_id)` on test_runs → enforces idempotency at DB level
-- Foreign keys with `ON DELETE CASCADE` → maintains referential integrity
-- Indexes on frequently queried columns
+**Key features:**
+- Unique index `{project_id, run_id}` on test_runs → enforces idempotency
+- Unique indexes on organization names and token hashes
+- Compound indexes for efficient queries
+- Automatic index creation on startup
 
-### 3. Synchronous vs Async Database Operations
+### 3. Model Layer Pattern
 
-I chose `better-sqlite3` (synchronous) over `sqlite3` (async) because:
-- Simpler error handling
-- Lower latency per request (no async overhead)
-- SQLite operations are fast enough that async isn't needed
-- Better for read-heavy workloads
+Uses separate model files for clean architecture:
+- `Organization.js` - CRUD operations for organizations
+- `Project.js` - CRUD operations for projects
+- `ApiToken.js` - Token generation, hashing, and authentication
+- `TestRun.js` - Test run management with statistics
+
+Benefits: Separation of concerns, reusability, maintainability, testability
 
 ---
 

@@ -57,7 +57,7 @@
 
 - **Runtime**: Node.js 16+
 - **Framework**: Express.js
-- **Database**: SQLite with WAL mode
+- **Database**: MongoDB Atlas (cloud) with Models pattern
 - **Authentication**: bcrypt for token hashing
 - **Logging**: Morgan + custom structured logs
 - **Testing**: Custom integration test client

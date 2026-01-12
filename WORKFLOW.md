@@ -32,10 +32,10 @@ Response to Client
 |------|---------|---------------|
 | **server.js** | Express app setup, middleware, error handling | HTTP server initialization |
 | **routes.js** | API endpoint handlers, business logic | All route handlers |
-| **auth.js** | Token hashing & authentication middleware | `hashToken()`, `authenticateToken()` |
+| **auth.js** | Authentication middleware | `authenticateToken()` |
 | **validation.js** | Request payload validation | `validateOrganization()`, `validateProject()`, etc. |
-| **db-helpers.js** | Promisified database operations | `dbRun()`, `dbGet()`, `dbAll()` |
-| **db.js** | Database initialization & schema | SQLite setup, schema creation |
+| **models/\*.js** | Database models (Organization, Project, ApiToken, TestRun) | CRUD operations, business logic |
+| **db.js** | Database connection & indexes | MongoDB Atlas connection, index creation |
 
 ---
 
