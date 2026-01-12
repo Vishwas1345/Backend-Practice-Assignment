@@ -1,0 +1,25 @@
+{
+  "name": "test-result-ingestion-backend",
+  "version": "1.0.0",
+  "description": "Minimal backend service for ingesting automated test results",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "node src/test-client.js"
+  },
+  "keywords": ["test", "analytics", "ingestion"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "sqlite3": "^5.1.6",
+    "bcrypt": "^5.1.1",
+    "uuid": "^9.0.1",
+    "morgan": "^1.10.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
+
