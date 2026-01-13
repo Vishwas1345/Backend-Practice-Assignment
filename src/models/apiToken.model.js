@@ -29,7 +29,7 @@ class ApiToken {
    * @returns {string} 64-character hex string
    */
   static generateToken() {
-    return `tap_${crypto.randomBytes(32).toString('hex')}`;
+    return `tap_${crypto.randomBytes(16).toString('hex')}`;
   }
 
   /**

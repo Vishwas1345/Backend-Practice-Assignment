@@ -1,5 +1,6 @@
 const { getDb } = require('../config/db.config');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 
 /**
  * Project Model
@@ -28,7 +29,7 @@ class Project {
    */
   static async create(orgId, name) {
     const project = {
-      _id: `proj_${uuidv4()}`,
+      _id: `proj_${crypto.randomBytes(8).toString('hex')}`,
       org_id: orgId,
       name,
       created_at: new Date()
