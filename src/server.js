@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const morgan = require('morgan');
+const rateLimit = require('express-rate-limit');
 const routes = require('./routes/routes');
 const { connectDatabase, closeDatabase } = require('./config/db.config');
 
@@ -9,6 +10,21 @@ const PORT = process.env.PORT || 3002;
 
 // Middleware
 app.use(express.json());
+
+// Rate Limiting: 100 requests per 15 minutes
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: {
+    error: 'Too Many Requests',
+    message: 'Too many requests from this IP, please try again after 15 minutes'
+  }
+});
+
+// Apply the rate limiting middleware to all requests
+app.use(limiter);
 
 // HTTP request logging with timing
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms'));
