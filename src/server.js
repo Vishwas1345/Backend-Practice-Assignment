@@ -84,7 +84,6 @@ Endpoints:
   POST   /ingest         - Ingest test results (requires auth)
   GET    /health         - Health check
 
-MongoDB URI: ${process.env.MONGODB_URI}
 Database: ${process.env.DB_NAME}
 
       `);
