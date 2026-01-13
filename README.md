@@ -83,7 +83,7 @@ POST /projects
 Content-Type: application/json
 
 {
-  "org_id": "uuid",
+  "org_id": "org_xyz",
   "name": "My Project"
 }
 ```
@@ -94,8 +94,10 @@ POST /tokens
 Content-Type: application/json
 
 {
-  "project_id": "proj_<id>",
-  "name": "CI-Token"
+  "project_id": "proj_xyz",
+  "name": "CI-Token",
+  "token" : "tap...".
+  "message" : "API token created successfully. Save this token - it will not be shown again!"
 }
 ```
 
