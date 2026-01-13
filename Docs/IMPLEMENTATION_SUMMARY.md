@@ -123,18 +123,18 @@ metricsController.increment('test_runs_ingested');
 
 **Token Management:**
 - bcrypt hashing (salt rounds: 10)
-- 256-bit entropy (crypto.randomBytes)
-- Permanent tokens (no expiration)
+- `tap_` prefix for easy identification
 - Project-scoped access
+- Unique token names per project
 
-**Authentication Flow:**
-1. Client sends `Authorization: Bearer <token>`
-2. Server extracts token
-3. Compares against hashed tokens
-4. Attaches `projectId` to request
-5. All operations scoped to project
+### 5. Rate Limiting
 
-### 5. Validation
+**Protection:**
+- 100 requests per 15 minutes per IP
+- Headers involved: `RateLimit-Limit`, `RateLimit-Remaining`
+- Response: 429 Too Many Requests
+
+### 6. Validation
 
 **Comprehensive Input Validation:**
 - Run ID format (`tr_` prefix required)
@@ -172,7 +172,7 @@ metricsController.increment('test_runs_ingested');
 **organizations**
 ```javascript
 {
-  _id: UUID,
+  _id: String, // org_<16_hex_chars>
   name: String (unique),
   created_at: Date
 }
@@ -181,8 +181,8 @@ metricsController.increment('test_runs_ingested');
 **projects**
 ```javascript
 {
-  _id: UUID,
-  org_id: UUID,
+  _id: String, // proj_<16_hex_chars>
+  org_id: String,
   name: String,
   created_at: Date
 }
@@ -192,7 +192,8 @@ metricsController.increment('test_runs_ingested');
 ```javascript
 {
   _id: UUID,
-  project_id: UUID,
+  project_id: String,
+  name: String,
   token_hash: String,
   created_at: Date
 }
@@ -267,12 +268,11 @@ npm test
 **Current Limitations:**
 - In-memory metrics (reset on restart)
 - No token expiration
-- No rate limiting
 - No pagination
 
 **Production Upgrades:**
 - Add token expiration/refresh
-- Implement rate limiting
+- Add token expiration/refresh
 - Add pagination
 - Use external metrics (Prometheus)
 - Add audit logging

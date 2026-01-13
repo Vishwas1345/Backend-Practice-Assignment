@@ -69,7 +69,7 @@ curl -X POST http://localhost:3002/orgs -H "Content-Type: application/json" -d '
 **Expected Response (201):**
 ```json
 {
-  "id": "uuid-here",
+  "id": "org_9f5ab1991269aba8",
   "name": "Acme Corporation",
   "message": "Organization created successfully"
 }
@@ -96,8 +96,8 @@ curl -X POST http://localhost:3002/projects -H "Content-Type: application/json" 
 **Expected Response (201):**
 ```json
 {
-  "id": "project-uuid",
-  "org_id": "org-uuid",
+  "id": "proj_3d7d6cdb4cc59a50",
+  "org_id": "org_9f5ab1991269aba8",
   "name": "Web App Tests",
   "message": "Project created successfully"
 }
@@ -113,20 +113,21 @@ curl -X POST http://localhost:3002/projects -H "Content-Type: application/json" 
 ```bash
 curl -X POST http://localhost:3002/tokens \
   -H "Content-Type: application/json" \
-  -d '{"project_id": "YOUR_PROJECT_ID_HERE"}'
+  -d '{"project_id": "YOUR_PROJECT_ID_HERE", "name": "CI-Token"}'
 ```
 
 **PowerShell:**
 ```powershell
-curl -X POST http://localhost:3002/tokens -H "Content-Type: application/json" -d '{\"project_id\": \"YOUR_PROJECT_ID_HERE\"}'
+curl -X POST http://localhost:3002/tokens -H "Content-Type: application/json" -d '{\"project_id\": \"YOUR_PROJECT_ID_HERE\", \"name\": \"CI-Token\"}'
 ```
 
 **Expected Response (201):**
 ```json
 {
   "id": "token-uuid",
-  "project_id": "project-uuid",
-  "token": "long-token-string-here",
+  "project_id": "proj_3d7d6cdb4cc59a50",
+  "name": "CI-Token",
+  "token": "tap_a1b2c3d4e5f6...",
   "message": "API token created successfully. Save this token - it will not be shown again!"
 }
 ```
@@ -338,7 +339,7 @@ PROJECT_ID=$(echo $PROJECT_RESPONSE | jq -r '.id')
 echo "Project ID: $PROJECT_ID"
 
 # 3. Create Token
-TOKEN_RESPONSE=$(curl -s -X POST http://localhost:3002/tokens -H "Content-Type: application/json" -d "{\"project_id\": \"$PROJECT_ID\"}")
+TOKEN_RESPONSE=$(curl -s -X POST http://localhost:3002/tokens -H "Content-Type: application/json" -d "{\"project_id\": \"$PROJECT_ID\", \"name\": \"Workflow-Token\"}")
 TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.token')
 echo "Token: $TOKEN"
 

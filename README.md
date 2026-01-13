@@ -11,6 +11,7 @@ A Node.js/Express backend service for ingesting and storing comprehensive test e
 - **API Token Authentication** - Secure Bearer token authentication
 - **Idempotent Ingestion** - Safe retries with duplicate detection
 - **Real-time Metrics** - Track API usage with auto-updating counters
+- **Rate Limiting** - 100 requests per 15 minutes per IP
 - **MongoDB Storage** - Scalable document-based storage
 
 ## 📋 Prerequisites
@@ -95,7 +96,8 @@ POST /tokens
 Content-Type: application/json
 
 {
-  "project_id": "uuid"
+  "project_id": "proj_<id>",
+  "name": "CI-Token"
 }
 ```
 
