@@ -11,7 +11,7 @@ const { ApiToken, Project } = require('../models/index.model');
  * @returns {Promise<Object>} Created token with raw token value
  * @throws {Error} If project not found or token creation fails
  */
-const createToken = async (projectId) => {
+const createToken = async (projectId, name) => {
     // Verify project exists
     const project = await Project.findById(projectId);
     if (!project) {
@@ -20,7 +20,7 @@ const createToken = async (projectId) => {
         throw error;
     }
 
-    const result = await ApiToken.create(projectId);
+    const result = await ApiToken.create(projectId, name);
     return result;
 };
 

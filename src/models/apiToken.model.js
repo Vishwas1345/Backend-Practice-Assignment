@@ -29,7 +29,7 @@ class ApiToken {
    * @returns {string} 64-character hex string
    */
   static generateToken() {
-    return crypto.randomBytes(32).toString('hex');
+    return `tap_${crypto.randomBytes(32).toString('hex')}`;
   }
 
   /**
@@ -54,9 +54,16 @@ class ApiToken {
   /**
    * Create a new API token
    * @param {string} projectId - Project ID
-   * @returns {Promise<Object>} { id, project_id, token, token_hash }
+   * @param {string} name - Token name
+   * @returns {Promise<Object>} { id, project_id, name, token, token_hash }
    */
-  static async create(projectId) {
+  static async create(projectId, name) {
+    // Check for duplicate name in project
+    const existing = await this.findByNameAndProject(name, projectId);
+    if (existing) {
+      throw new Error('Token with this name already exists in the project');
+    }
+
     const tokenId = uuidv4();
     const rawToken = this.generateToken();
     const tokenHash = await this.hashToken(rawToken);
@@ -64,6 +71,8 @@ class ApiToken {
     const apiToken = {
       _id: tokenId,
       project_id: projectId,
+      name,
+      token_hash: tokenHash,
       token_hash: tokenHash,
       created_at: new Date()
     };
@@ -73,6 +82,7 @@ class ApiToken {
     return {
       id: tokenId,
       project_id: projectId,
+      name,
       token: rawToken, // Raw token returned only once!
       token_hash: tokenHash
     };
@@ -102,6 +112,16 @@ class ApiToken {
    */
   static async findAll() {
     return await this.getCollection().find({}).toArray();
+  }
+
+  /**
+   * Find token by name and project ID
+   * @param {string} name - Token name
+   * @param {string} projectId - Project ID
+   * @returns {Promise<Object|null>}
+   */
+  static async findByNameAndProject(name, projectId) {
+    return await this.getCollection().findOne({ name, project_id: projectId });
   }
 
   /**
