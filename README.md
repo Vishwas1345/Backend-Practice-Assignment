@@ -255,6 +255,13 @@ Metrics automatically update when:
 - Test runs are ingested
 - Duplicate runs are detected
 
+### Why In-Memory Metrics?
+We chose simple in-memory counters for this project to provide **immediate, zero-configuration observability**. 
+1. **Simplicity**: No need to set up external monitoring stacks (Prometheus, Grafana) for basic health checks.
+2. **Real-time**: Instant feedback on ingestion rates and error counts.
+3. **Lightweight**: Minimal performance overhead compared to complex instrumentation.
+4. **Sufficiency**: For many deployments, knowing the current failure/success counts since the last restart is sufficient for operational awareness.
+
 ## 🧪 Testing
 
 ### Integration Tests
@@ -284,6 +291,23 @@ Test run ingestion is idempotent using the `run_id`:
 - First ingestion: Returns `201 Created`
 - Duplicate ingestion: Returns `200 OK` with `duplicate: true`
 - Safe for retries
+
+## 📈 Scaling Thoughts
+
+### What breaks first if traffic increases 10×?
+**The CPU.**
+The current authentication implementation uses `bcrypt` to verify tokens on **every request**. `bcrypt` is intentionally computationally expensive (CPU intensive) to resist brute-force attacks.
+In a single-threaded Node.js environment, a 10x increase in authenticated traffic would likely cause the Event Loop to block while computing hashes, leading to high latency and eventual timeouts (`503 Service Unavailable`), even if the database is fine.
+
+### One optimization I would NOT do early
+**Database Sharding.**
+MongoDB can handle millions of documents and high throughput on a single replica set. Sharding introduces significant operational complexity (balancing chunks, query routing).
+It is better to scale vertically (larger instances) or optimize indexes first. Sharding should only be considered when the working set exceeds RAM or write throughput hits single-node limits.
+
+## 🐛 Known Issues & Limitations
+
+- **Metrics Reset**: Since metrics are in-memory, they reset to zero whenever the server restarts or re-deploys.
+- **No Token Revocation**: Once issued, a token is valid forever until deleted from the database. There is no expiry mechanism.
 
 ## 📝 Environment Variables
 
