@@ -27,7 +27,7 @@ class Organization {
    */
   static async create(name) {
     const organization = {
-      _id: uuidv4(),
+      _id: `org_${uuidv4()}`,
       name,
       created_at: new Date()
     };

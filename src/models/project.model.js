@@ -28,7 +28,7 @@ class Project {
    */
   static async create(orgId, name) {
     const project = {
-      _id: uuidv4(),
+      _id: `proj_${uuidv4()}`,
       org_id: orgId,
       name,
       created_at: new Date()
