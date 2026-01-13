@@ -4,9 +4,7 @@ A Node.js/Express backend service for ingesting and storing comprehensive test e
 
 ## 🚀 Features
 
-- **Comprehensive Test Data** - Track test suites, individual test cases, error messages, and execution steps
-- **Environment Tracking** - Monitor tests across different environments (staging, production, etc.)
-- **Flaky Test Detection** - Identify and track flaky tests
+- **Comprehensive Test Data** - Ingest and store test suites
 - **MVC Architecture** - Clean separation of concerns with routes, controllers, services, and models
 - **API Token Authentication** - Secure Bearer token authentication
 - **Idempotent Ingestion** - Safe retries with duplicate detection
@@ -197,14 +195,19 @@ src/
 │   └── testRun.model.js
 ├── utils/               # Helpers
 │   └── response.util.js
-├── routes.js            # Route definitions
+├── routes/              # Route definitions
+│   └── routes.js
+├── config/              # Configuration
+│   └── db.config.js
+├── test/                # Test scripts
+│   ├── manual-test.js
+│   ├── test-client.js
+│   └── mockTestData.js
 ├── server.js            # Express app setup
-└── db.js                # MongoDB connection
 
 Docs/                    # Documentation
 ├── CURL_COMMANDS.md     # API testing commands
-├── QUICKSTART.md        # Quick start guide
-└── WORKFLOW.md          # Development workflow
+└── IMPLEMENTATION_SUMMARY.md # Technical implementation details
 ```
 
 ## 🔐 Authentication
@@ -331,15 +334,13 @@ DB_NAME=test_analytics
 ## 📚 Documentation
 
 - [CURL Commands](Docs/CURL_COMMANDS.md) - Complete API testing guide
-- [Quick Start](Docs/QUICKSTART.md) - Get started quickly
-- [Workflow](Docs/WORKFLOW.md) - Development workflow
+- [Implementation Summary](Docs/IMPLEMENTATION_SUMMARY.md) - Deep dive into architecture and features
 
 ## 🛠️ Technology Stack
 
 - **Runtime**: Node.js
 - **Framework**: Express.js
 - **Database**: MongoDB
-- **Authentication**: JWT (Bearer tokens)
 - **Validation**: Custom middleware
 - **Architecture**: MVC pattern
 
